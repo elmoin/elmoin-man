@@ -26,7 +26,7 @@ npm start
 
 - Use methods of [`String` package](http://package.elm-lang.org/packages/elm-lang/core/4.0.5/String) to compare and display Strings.
 
-- Last of all: There is already a solution of this exercise: [branch `solution`](../tree/solution)
+- Last of all: There is already a solution of this exercise: [branch `solution`](https://github.com/elmoin/elmoin-man/tree/solution)
 
 
 ## License
