@@ -3,6 +3,8 @@ module App exposing (..)
 import Html exposing (..)
 import Html.App as Html
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
+import String
 
 
 main : Program Never
@@ -76,23 +78,59 @@ maxChar =
     10
 
 
+displayGuess : Word -> Word -> String
+displayGuess word guess =
+    let
+        displayChar char =
+            if String.contains (String.fromChar char) guess then
+                char
+            else
+                '*'
+    in
+        String.map displayChar word
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         StartGame ->
-            ( model, Cmd.none )
+            let
+                guessDisplay =
+                    displayGuess model.word " "
+            in
+                ( { model
+                    | gameStatus = Run
+                    , guessDisplay = guessDisplay
+                  }
+                , Cmd.none
+                )
 
         NewGame ->
-            ( model, Cmd.none )
+            ( initialModel, Cmd.none )
 
         EnterWord word ->
-            ( model, Cmd.none )
+            ( { model | word = word }, Cmd.none )
 
         EnterGuess guess ->
-            ( model, Cmd.none )
+            ( { model | guess = guess }, Cmd.none )
 
         Guess ->
-            ( model, Cmd.none )
+            let
+                guessDisplay =
+                    displayGuess model.word model.guess
+            in
+                ( { model
+                    | guessList = guessDisplay :: model.guessList
+                    , guessDisplay = guessDisplay
+                    , guess = ""
+                    , gameStatus =
+                        if guessDisplay == model.word then
+                            Finish
+                        else
+                            Run
+                  }
+                , Cmd.none
+                )
 
         NoOp ->
             ( model, Cmd.none )
@@ -134,47 +172,76 @@ header =
 
 wordInput : Model -> Html Msg
 wordInput model =
-    div [ class "flex-auto p2 bg-gray" ]
-        [ input
-            [ class "col-2 h2 px1 py1 "
-            , type' "password"
-            , value model.word
-            , autofocus True
-            , maxlength maxChar
-            , minlength minChar
-            , placeholder "Enter word"
+    let
+        show =
+            if model.gameStatus == Start then
+                ""
+            else
+                " hide"
+    in
+        div [ class <| "flex-auto p2 bg-gray" ++ show ]
+            [ input
+                [ class "col-2 h2 px1 py1 "
+                , type' "password"
+                , value model.word
+                , autofocus True
+                , maxlength maxChar
+                , minlength minChar
+                , onInput EnterWord
+                , placeholder "Enter word"
+                , disabled <| model.gameStatus /= Start
+                ]
+                []
+            , button
+                [ class "h3 regular p2 ml2 btn btn-primary bg-orange"
+                , onClick StartGame
+                , disabled <| model.gameStatus /= Start || String.length model.word < minChar
+                ]
+                [ text "Start Game" ]
             ]
-            []
-        , button
-            [ class "h3 regular p2 ml2 btn btn-primary bg-orange"
-            ]
-            [ text "Start Game" ]
-        ]
 
 
 guessInput : Model -> Html Msg
 guessInput model =
-    div [ class "flex-auto p2 bg-silver" ]
-        [ input
-            [ class "col-2 h2 px1 py1"
-            , type' "text"
-            , value model.guess
-            , maxlength maxChar
-            , minlength minChar
-            , placeholder "Your guess"
+    let
+        show =
+            if model.gameStatus == Run then
+                ""
+            else
+                " hide"
+    in
+        div [ class <| "flex-auto p2 bg-silver" ++ show ]
+            [ input
+                [ class "col-2 h2 px1 py1"
+                , type' "text"
+                , value model.guess
+                , maxlength maxChar
+                , minlength minChar
+                , onInput EnterGuess
+                , placeholder "Your guess"
+                , disabled <| model.gameStatus /= Run
+                ]
+                []
+            , button
+                [ class "h3 regular p2 ml2 btn btn-primary bg-teal"
+                , onClick Guess
+                , disabled <| model.gameStatus /= Run || String.length model.guess < minChar
+                ]
+                [ text "My guess" ]
             ]
-            []
-        , button
-            [ class "h3 regular p2 ml2 btn btn-primary bg-teal"
-            ]
-            [ text "My guess" ]
-        ]
 
 
 guessList : Model -> Html Msg
 guessList model =
-    ul [ class "list-reset m0" ]
-        (List.map guessItem model.guessList)
+    let
+        show =
+            if model.gameStatus == Run then
+                ""
+            else
+                " hide"
+    in
+        ul [ class <| "list-reset m0" ++ show ]
+            (List.map guessItem model.guessList)
 
 
 guessItem : Word -> Html Msg
@@ -186,11 +253,19 @@ guessItem word =
 
 finishView : Model -> Html Msg
 finishView model =
-    div [ class "col-12 p2 bg-fuchsia" ]
-        [ h1 [ class "white regular mt0" ] [ text <| "Yeah, you got it !!!" ]
-        , h1 [ class "white regular mt0 italic" ] [ text <| "\"" ++ model.word ++ "\"" ]
-        , button
-            [ class "h3 regular p2 btn btn-primary fuchsia bg-white"
+    let
+        show =
+            if model.gameStatus == Finish then
+                ""
+            else
+                " hide"
+    in
+        div [ class <| "col-12 p2 bg-fuchsia" ++ show ]
+            [ h1 [ class "white regular mt0" ] [ text <| "Yeah, you got it !!!" ]
+            , h1 [ class "white regular mt0 italic" ] [ text <| "\"" ++ model.word ++ "\"" ]
+            , button
+                [ class "h3 regular p2 btn btn-primary fuchsia bg-white"
+                , onClick NewGame
+                ]
+                [ text "New Game" ]
             ]
-            [ text "New Game" ]
-        ]
