@@ -1,13 +1,12 @@
 module App exposing (..)
 
 import Html exposing (..)
-import Html.App as Html
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import String
 
 
-main : Program Never
+main : Program Never Model Msg
 main =
     Html.program
         { init = init
@@ -182,7 +181,7 @@ wordInput model =
         div [ class <| "flex-auto p2 bg-gray" ++ show ]
             [ input
                 [ class "col-2 h2 px1 py1 "
-                , type' "password"
+                , type_ "password"
                 , value model.word
                 , autofocus True
                 , maxlength maxChar
@@ -213,7 +212,7 @@ guessInput model =
         div [ class <| "flex-auto p2 bg-silver" ++ show ]
             [ input
                 [ class "col-2 h2 px1 py1"
-                , type' "text"
+                , type_ "text"
                 , value model.guess
                 , maxlength maxChar
                 , minlength minChar
